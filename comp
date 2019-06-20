@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+gcc -o start.elf start.c

@@ -1,6 +1,6 @@
 #include "liamos.h"
 
-int main(int argc, char const *argv[])
+void main()
 {
     
     return 0;
