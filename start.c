@@ -1,7 +1,6 @@
 #include "liamos.h"
 
-void main()
+int main()
 {
-    
     return 0;
 }
