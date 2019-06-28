@@ -1,9 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/bash -x
 
-sudo echo -n
-mkdir temp
-git clone https://github.com/LiamCoal/losapi.git temp
-cd temp
-sudo ./install
-cd ..
-sudo rm -fr temp
+# this file only exists because make dosent allow dir changes. (sad i no)
+
+if [[ "$1" == "-a" ]]; then
+    cd temp
+    sudo ./install
+    cd ..
+fi
