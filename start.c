@@ -1,8 +1,13 @@
-#include "liamos.h"
-#include <losapi.h>
+int lmain();
 
-int main()
-{
-    puts("Yay it works. (maybe)");
-    return 0;
+void _start() {
+    lmain();
+    asm("hlt");
 }
+
+#include "liamos.h"
+
+int lmain() {
+    putchs("Hello World!", 12);
+}
+

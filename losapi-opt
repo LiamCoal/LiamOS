@@ -1,9 +1,0 @@
-#!/bin/bash -x
-
-# this file only exists because make dosent allow dir changes. (sad i no)
-
-if [[ "$1" == "-a" ]]; then
-    cd temp
-    sudo ./install
-    cd ..
-fi
