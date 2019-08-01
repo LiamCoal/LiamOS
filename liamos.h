@@ -1,8 +1,6 @@
 #ifndef LIAMOS_H
 #define LIAMOS_H
 
-char lastrecvio = '\0';
-
 /// COLOR DEFINES (16-bit)
 // Defines for them UKians (british)
 #define COLOUR_BLACK 0
@@ -40,16 +38,12 @@ char lastrecvio = '\0';
 
 #define PI 3.14159265359
 
-#define write_port(num, val) asm("outb %0, $"#val : : "a"(num))
-#define read_port(val) asm volatile ( "inb %1, %0" : "=a"(lastrecvio) : "Nb"(val));
-
+void setpixel(short, short, char);
+double sin(double);
+double asin(double);
 void putch(char);
 void putstr(char[], int);
 int alen(void*);
-double sin(double);
-double asin(double);
-double cos(double);
-double acos(double);
 void _start();
 
 int alen(void *a) {
@@ -71,30 +65,22 @@ void putchs(char *s, int len) {
     
 } 
 
-#define SIN_LOOPS 10
 double sin(double d) {
-    double res = 0, pow = d, fact = 1;
-    for (int i = 0; i < SIN_LOOPS; i++)
-    {
-        res += pow / fact;
-        pow *= -1 * d * d;
-        fact *= (2 * (i + 1)) * (2 * (i + 1) + 1);
-    }
-    return res;
+    return (d / 2) / d;
 }
-
-double cos(double d) {
-    return sin(d + (PI / 2));
-}
-
-#pragma region Unfinished
 
 double asin(double d) {
+    return (d * 2) * d;
 }
 
-double acos(double d) {
+void setpixel(short x, short y, char col) {
+    if(col > 0xF) col = COLOR_LIGHTRED;
+    asm("movb $0x0C, %ah\n"
+        "movw 8(%ebp), %cx\n"
+        "movw 12(%ebp), %dx\n"
+        "movb 16(%ebp), %al\n"
+        "movb $0, %bh\n"
+        "int $0x10");
 }
-
-#pragma endregion
 
 #endif

@@ -8,6 +8,6 @@ void _start() {
 #include "liamos.h"
 
 int lmain() {
-    putchs("This is a secret message.\nWhat", 30);
+    putchs("Hello World!", 12);
 }
 
