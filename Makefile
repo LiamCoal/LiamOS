@@ -1,16 +1,28 @@
 all:
-	gsettings set org.gnome.desktop.media-handling automount-open false
-	rm -rf img `cat FNAME.txt` temp
+	sudo rm -rf img LIAMOS1.img temp out
+	mkdir out
 	sudo apt install syslinux
 	sudo echo -n
 	mkdir -p img
-	mkdosfs -n LIAMOS -C `cat FNAME.txt` 2000
-	syslinux `cat FNAME.txt`
-	sudo mount `cat FNAME.txt` img
-	mkdir -p img/boot/syslinux
-	clang -Wl,--oformat=binary -nostdlib -fomit-frame-pointer -fno-builtin -nostartfiles -nodefaultlibs -Wl,-e,0x7C00 -Wl,-Tbss,0x7C00 -Wl,-Tdata,0x7C00 -Wl,-Ttext,0x7C00 -m16 start.c -o img/boot/start.bss
-	cp boot.cfg img/boot/syslinux/syslinux.cfg
+	mkdosfs -n LIAMOS -C LIAMOS1.img 2000
+	syslinux LIAMOS1.img
+	sudo mount LIAMOS1.img img
+	sudo mkdir -p img/boot/syslinux
+	mkdir out/boot
+	@# Make executables
+	nasm src/start.s -f bin -o out/boot/start.bin
+	
+	@# Finish up
+	sudo cp boot.cfg img/boot/syslinux/syslinux.cfg
+	sudo cp -r out/** img
 	sleep 1
 	sudo umount img
 	sudo rm -fr temp
-	gsettings set org.gnome.desktop.media-handling automount-open true
+
+run32: all
+	./run.sh x86_32
+
+exec: run32
+
+run64: all
+	./run.sh x86_64

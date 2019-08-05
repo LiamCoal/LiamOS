@@ -4,3 +4,6 @@
 isomake
 *.img
 img
+out
+*_hidden.s
+*.lsa
