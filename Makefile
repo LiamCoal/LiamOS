@@ -26,3 +26,8 @@ exec: run32
 
 run64: all
 	./run.sh x86_64
+
+todo:
+	@head /dev/urandom | tr -dc a-z0-9 | head -c 7
+
+.PHONY: todo
