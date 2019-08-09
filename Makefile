@@ -30,4 +30,7 @@ run64: all
 todo:
 	@head /dev/urandom | tr -dc a-z0-9 | head -c 7
 
+gettodo:
+	@git grep -n TODO src
+
 .PHONY: todo
