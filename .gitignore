@@ -7,3 +7,4 @@ img
 out
 *_hidden.s
 *.lsa
+*.o
