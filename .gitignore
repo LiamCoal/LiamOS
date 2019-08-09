@@ -8,3 +8,5 @@ out
 *_hidden.s
 *.lsa
 *.o
+*.xz
+*.zip

@@ -1,25 +1,7 @@
 bits 16
 org 0x100
 
-call checkmod
 jmp _start
-
-checkmod:
-    mov al, byte [ksig]
-    mov bl, byte [ksig+1]
-    mov cl, byte [ksig+2]
-    mov dl, byte [ksig+3]
-    mov byte [0x300], 0
-    cmp al, 122
-    jne imgbad
-    cmp bl, 70
-    jne imgbad
-    cmp cl, 74
-    jne imgbad
-    cmp dl, 41
-    jne imgbad
-    inc byte [0x300]
-    ret
 
 print:
     pusha
@@ -52,15 +34,3 @@ keyboardint:
     mov byte [es:0x0000], al
     pop es
     iret
-
-imgbad:
-    mov al, byte [0x0300]
-    mov si, imgbad_msg0
-    mov cx, 46
-    call print
-.hlt:
-    jmp $
-
-
-imgbad_msg0: db `FATAL: Image might be bad. (Invalid signature)`
-ksig: db 112, 70, 74, 41
