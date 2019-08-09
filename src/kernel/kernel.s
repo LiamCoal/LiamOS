@@ -65,7 +65,7 @@ imgbad:
     mov cx, 46
     call print
 .is1:
-    mov si, imgbad_msg1 ; TODO (42hb4dj)
+    mov si, imgbad_msg1 ; TODO Remove (42hb4dj)
     mov cx, 41          ; ^
     call print          ; ^
 .what:
@@ -74,6 +74,6 @@ imgbad:
 
 
 imgbad_msg0: db `FATAL: Image might be bad. (Invalid signature)`
-imgbad_msg1: db `FATAL: Image might be bad. (Invalid size)` ; TODO (42hb4dj)
+imgbad_msg1: db `FATAL: Image might be bad. (Invalid size)` ; TODO Remove (42hb4dj)
 ksig: db 112, 70, 74, 41
-ksiz: dd $ ; TODO (42hb4dj)
+ksiz: dd $ ; TODO Remove (42hb4dj)

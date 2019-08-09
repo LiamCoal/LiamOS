@@ -1,3 +1,0 @@
-TODO abcdefg MM/DD/YYYY
-<Insert task here>
-Finished MM/DD/YYYY (or ??/??/???? if not finished yet)
