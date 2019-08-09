@@ -55,25 +55,12 @@ keyboardint:
 
 imgbad:
     mov al, byte [0x0300]
-    cmp ax, 0
-    je .is0
-    cmp ax, 1
-    je .is1
-    jmp .what
-.is0:
     mov si, imgbad_msg0
     mov cx, 46
     call print
-.is1:
-    mov si, imgbad_msg1 ; TODO Remove (42hb4dj)
-    mov cx, 41          ; ^
-    call print          ; ^
-.what:
 .hlt:
     jmp $
 
 
 imgbad_msg0: db `FATAL: Image might be bad. (Invalid signature)`
-imgbad_msg1: db `FATAL: Image might be bad. (Invalid size)` ; TODO Remove (42hb4dj)
 ksig: db 112, 70, 74, 41
-ksiz: dd $ ; TODO Remove (42hb4dj)
