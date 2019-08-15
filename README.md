@@ -1,5 +1,12 @@
 # LiamOS
 
+## Dependencies
+
+```shell
+sudo apt update
+sudo apt install qemu syslinux
+```
+
 ## I'm sorry, but whats a LiamOS
 
 LiamOS is a really badly written operating system that is an experiment.
@@ -36,13 +43,19 @@ img/: Old mount dir of LIAMOS1.img. Remember Makefile?
 ## How to compile
 
 ```shell
-./make
+make clean all
 ```
 
 is all it takes to build LiamOS.
 
 ```shell
-./make exec
+make clean run32
 ```
 
 runs LiamOS in qemu after build.
+
+If you want to package LIAMOS into a .zip.xz file, use
+
+```shell
+make clean LIAMOS1.zip.xz
+```

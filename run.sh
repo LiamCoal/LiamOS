@@ -13,5 +13,4 @@ then
     qemu-system-x86_64 -hda LIAMOS1.img
     exit 0
 fi
-
 echo "ERROR: Specify either 'x86_32' or 'x86_64'"
