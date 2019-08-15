@@ -35,7 +35,5 @@ run32: LIAMOS1.img
 	./run.sh x86_32
 	rm LIAMOS1.img # For space reasons
 
-kernel.bin: src/kernel/kernel.s src/kernel/struct.s
-	nasm -o kernel.bin src/kernel/kernel.s
-	nasm -o disk.bin src/kernel/disk.s
-	nasm -o out/boot/kernel.bin src/kernel/struct.s
+kernel.bin: src/kernel.c
+	clang -Wl,--oformat=binary,-Ttext,0x7C00,-Tdata,0x7E00,-Tbss,0x7E00 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/boot/kernel.bin src/kernel.c
