@@ -5,6 +5,7 @@ pkg: LIAMOS1.zip.xz src.tar.xz
 
 mkdirs:
 	mkdir -p out/boot/syslinux
+	mkdir -p out/lsa
 
 clean:
 	rm -rf LIAMOS1.* out *.o *.elf *.bin
@@ -12,7 +13,7 @@ clean:
 rebuild: clean all
 
 LIAMOS1.img: mkdirs boot.cfg kernel.bin
-	mkdosfs -n LIAMOS -C LIAMOS1.img 2000
+	mkdosfs -h 0 -R 1 -F 16 -n LIAMOS -C LIAMOS1.img 10000
 	syslinux LIAMOS1.img
 	
 	cp boot.cfg out/boot/syslinux/syslinux.cfg
@@ -33,7 +34,9 @@ src.tar.xz:
 
 run32: LIAMOS1.img
 	./run.sh x86_32
-	rm LIAMOS1.img # For space reasons
+
+%.bin: src/%.c
+	clang -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x1000,-Trodata,0x0000,-Tdata,0x0A00,-Tbss,0x0A00 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/lsa/$@ $<
 
 kernel.bin: src/kernel.c
-	clang -Wl,--oformat=binary,-Ttext,0x7C00,-Tdata,0x7E00,-Tbss,0x7E00 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/boot/kernel.bin src/kernel.c
+	clang -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x7C00,-Trodata,0xA000,-Tdata,0x9000,-Tbss,0x9000 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/boot/kernel.bin src/kernel.c
