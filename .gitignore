@@ -5,8 +5,9 @@ isomake
 *.img
 img
 out
-*_hidden.s
-*.lsa
 *.o
 *.xz
 *.zip
+*.vdi
+
+# lots of things

@@ -5,7 +5,6 @@ pkg: LIAMOS1.zip.xz src.tar.xz
 
 mkdirs:
 	mkdir -p out/boot/syslinux
-	mkdir -p out/lsa
 
 clean:
 	rm -rf LIAMOS1.* out *.o *.elf *.bin
@@ -35,8 +34,14 @@ src.tar.xz:
 run32: LIAMOS1.img
 	./run.sh x86_32
 
-%.bin: src/%.c
-	clang -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x1000,-Trodata,0x0000,-Tdata,0x0A00,-Tbss,0x0A00 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/lsa/$@ $<
+run64: LIAMOS1.img
+	./run.sh x86_64
 
-kernel.bin: src/kernel.c
-	clang -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x7C00,-Trodata,0xA000,-Tdata,0x9000,-Tbss,0x9000 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/boot/kernel.bin src/kernel.c
+LIAMOS1.vdi: LIAMOS1.img
+	vbox-img convert --srcfilename LIAMOS1.img --dstfilename LIAMOS1.vdi --srcformat RAW --dstformat VDI --variant Standard # WARNING!!! VirtualBox runs into checksum issues.
+
+%.bin: src/%.c
+	clang -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x1000,-Trodata,0x0000,-Tdata,0x0A00,-Tbss,0x0A00 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/$@ $<
+
+kernel.bin: src/kernel.c src/kitten_desktop.h src/kernel.h src/kitten_desktop.c
+	clang -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x7C00,-Trodata,0xA000,-Tdata,0x9000,-Tbss,0x9000 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/boot/kernel.bin src/kernel.c src/kitten_desktop.c

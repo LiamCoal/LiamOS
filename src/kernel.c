@@ -1,17 +1,10 @@
-#define cls() vmode(curvmode);\
-              setcpos(0, 0)
-#define true 0b00000001
-#define false 0b00000000
-#define bool char
+#include "kernel.h"
+#include "kitten_desktop.h"
+
+#define DESKTOPCOL lblue
 
 void kmain();
-void putc(char);
-void puts(char*);
-void putsc(char*, char);
-void putpixel(short, short, char);
-void putrect(short, short, short, short, char);
-void putgtxt(short, short, char, const char*);
-void vmode(char);
+void int80h();
 
 void _start() {
     kmain();
@@ -20,7 +13,7 @@ void _start() {
 
 unsigned char *memory = (unsigned char*)0x00500;
 unsigned char  curvmode = 0x03;
-const char 
+const char // TODO sort
     black = 0x00,
     white = 0x0F,
     blue = 0x01,
@@ -30,14 +23,27 @@ const char
     lgreen = 0x0A,
     lred = 0x0C,
     gray = 0x07;
-int vyptr = 1;
-void *nullptr = 0;
+int            vyptr = 1;
+void          *nullptr = 0;
+
+const char testimg[5 * 5] = {
+    DESKTOPCOL, DESKTOPCOL, DESKTOPCOL, DESKTOPCOL, DESKTOPCOL,
+    white, gray, black, gray, white,
+    red, green, blue, DESKTOPCOL, DESKTOPCOL,
+    lred, lgreen, lblue, DESKTOPCOL, DESKTOPCOL,
+    black, black, black, black, black
+};
 
 void kmain() {
-    vmode(0x13);
-    for(char i = 0; i < 16; i++) {
-        putrect(i * 20, 0, 320, 200, i + 16);
+    __asm {
+        cli
+        mov ax, int80h
+        mov word ptr [0x320], ax
+        mov word ptr [0x322], cs
+        sti
     }
+    vmode(0x13);
+    putrect(0, 0, 320, 200, DESKTOPCOL);
 }
 
 typedef struct {
@@ -78,8 +84,6 @@ void putsc(char *txt0, char col) {
     }
 }
 
-void sleep(int);
-
 void putsc_slo(char *txt0, char col) {
     int i = 0;
     while(txt0[i] != 0) {
@@ -100,7 +104,7 @@ void setcpos(int x, int y) {
     }
 }
 
-void putpixel(short x, short y, const char col) {
+void putpixel(short x, short y, const char col) { // TODO Put this in an asm file.
     __asm {
         mov ah, 0x0C
         mov al, col
@@ -126,8 +130,20 @@ void putrect(short x, short y, short xl, short yl, const char col) {
     }
 }
 
-void putgtxt(short x, short y, char col, const char *str) {
-
+void putimg(const char img[], short x, short y, short xl, short yl) {
+    for(short x0 = x; x0 < xl; x0++) {
+        for(short y0 = y; y0 < yl; y0++) {
+            char col = img[x0 + y0];
+            __asm {
+                mov ah, 0x0C
+                mov al, col
+                mov bh, 0
+                mov cx, x0
+                mov dx, y0
+                int 10h
+            }
+        }
+    }
 }
 
 void vmode(char v) {
@@ -146,6 +162,20 @@ void sleep(int time) {
         {
             asm("nop");
         }
+    }
+}
+
+void int80h_real() {
+    // Only exists for interrupt support.
+    __asm {
+
+    }
+}
+
+void int80h() {
+    __asm {
+        mov ax, int80h_real
+
     }
 }
 
