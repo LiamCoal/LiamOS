@@ -1,5 +1,4 @@
 #include "kernel.h"
-#include "kitten_desktop.h"
 
 #define DESKTOPCOL lblue
 
