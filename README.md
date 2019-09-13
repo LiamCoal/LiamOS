@@ -53,3 +53,7 @@ If you want to package LIAMOS into a .tar.xz file, use
 ```shell
 make clean LIAMOS1.tar.xz
 ```
+
+## Some quick warning(s)
+
+qemu is really slow on my computer. Maybe soon it will change but rn, theres a makefile rule to build a VirtualBox image. (booting from floppy is not syslinux approved) I would recomend using real hardware instead of VM, but its there just in case. ALSO, keep in mind that some code that works on VM, might not work on real hardware. Please test both before creating a pull request.
