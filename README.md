@@ -16,13 +16,11 @@ I mean, it boots and does nothing...
 
 ### At all times
 
-Makefile: Allows you to use make to build the project (Use ./make instead tho)  
+Makefile: Allows you to use make to build the project
 
 README.md: What you're reading right now  
 
-run.sh: Runs LiamOS in an emulator. Prefer not to run it directly, use make exec.  
-
-make: Just run ./make to create LIAMOS1.img  
+run.sh: Runs LiamOS in an emulator. Prefer not to run it directly, use make exec.
 
 boot.cfg: Syslinux config file. [see Syslinux](syslinux.org).  
 
@@ -34,11 +32,7 @@ src/kernel/kernel.s: Main kernel file
 
 out/: Directory where all of the files end up before they are copyed to img  
 
-img/: Old mount dir of LIAMOS1.img. Remember Makefile?  
-
-> Makefile: ... (Use ./make instead tho)
-
-./make automaticly unmounts img if an error occurs, so that you dont have to do it every time the kernel decides not to compile
+img/: Mount dir of LIAMOS1.img.
 
 ## How to compile
 
@@ -54,8 +48,8 @@ make clean run32
 
 runs LiamOS in qemu after build.
 
-If you want to package LIAMOS into a .zip.xz file, use
+If you want to package LIAMOS into a .tar.xz file, use
 
 ```shell
-make clean LIAMOS1.zip.xz
+make clean LIAMOS1.tar.xz
 ```
