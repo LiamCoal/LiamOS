@@ -2,7 +2,7 @@
 
 **Readme is very likely outdated:**
 Last update: 10/06/2019  
-LiamOS Version: 1.0.1
+LiamOS Version: 0.0.1a (ALPHA)
 
 ## Dependencies
 
