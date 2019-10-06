@@ -9,6 +9,7 @@
 #define DESKTOPCOL lblue
 #define YES true
 #define NO false
+#define VERSION "1.0.1"
 
 extern unsigned char *memory;
 extern unsigned char  curvmode;
