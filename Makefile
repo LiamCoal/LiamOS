@@ -1,7 +1,7 @@
 .PHONY : all clean rebuild mkdirs src.tar.xz exec
 
 all: LIAMOS1.img
-pkg: LIAMOS1.zip.xz src.tar.xz
+pkg: LIAMOS1.xz src.tar.xz
 
 mkdirs:
 	mkdir -p out/boot/syslinux
@@ -25,8 +25,8 @@ LIAMOS1.img: mkdirs boot.cfg kernel.bin
 %.zip: %.img
 	zip -9 $@ $<
 
-%.zip.xz: %.zip
-	xz $<
+%.xz: %.img
+	xz -c $< > $@ 
 
 src.tar.xz:
 	tar -Jcf src.tar.xz Makefile LICENSE boot.cfg src/** run.sh
@@ -40,10 +40,11 @@ run64: LIAMOS1.img
 LIAMOS1.vdi: LIAMOS1.img
 	vbox-img convert --srcfilename LIAMOS1.img --dstfilename LIAMOS1.vdi --srcformat RAW --dstformat VDI --variant Standard # WARNING!!! VirtualBox runs into checksum issues.
 
+# * Unused
 %.bin: src/%.c
 	clang -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x1000,-Trodata,0x0000,-Tdata,0x0A00,-Tbss,0x0A00 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/$@ $<
 
-kernel.bin: src/kernel.c src/kitten_desktop.h src/kernel.h src/kitten_desktop.c
-	clang -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x7C00,-Trodata,0xA000,-Tdata,0x9000,-Tbss,0x9000 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/boot/kernel.bin src/kernel.c
+kernel.bin: $(foreach dir,src,$(wildcard $(dir)/*.c)) $(foreach dir,src,$(wildcard $(dir)/*.h))
+	clang -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x7C00,-Trodata,0xA000,-Tdata,0x9000,-Tbss,0x9000 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/boot/kernel.bin $(foreach dir,src,$(wildcard $(dir)/*.c))
 
 exec: run32

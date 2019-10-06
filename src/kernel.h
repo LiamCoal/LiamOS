@@ -6,29 +6,63 @@
 #define true 255
 #define false 0
 #define bool char
+#define DESKTOPCOL lblue
+#define YES true
+#define NO false
 
 extern unsigned char *memory;
 extern unsigned char  curvmode;
-extern const char 
+extern const char
     black,
-    white,
     blue,
     green,
+    cyan,
     red,
+    magenta,
+    brown,
+    gray,
+    dgray,
     lblue,
     lgreen,
+    lcyan,
     lred,
-    gray;
+    lmagenta,
+    yellow,
+    white;
 extern int            vyptr;
 extern void          *nullptr;
 
-void putc(char c);
-void puts(char* s);
-void putsc(char* s, char col);
-void putpixel(short x, short y, char col);
-void putrect(short x, short y, short xl, short yl, char col);
-void putimg(const char img[], short x, short y, short xl, short yl);
+typedef struct {
+    char txt;
+    char col;
+} txt;
+
 void vmode(char);
 void sleep(int);
+void puts(char *c, const char col);
+
+/**
+ * Simple inline functions.
+ * ¯\_(ツ)_/¯
+ */
+
+inline txt totxt(char c, char col) {
+    txt t;
+    t.txt = c;
+    t.col = col;
+    return t;
+}
+
+inline void putc(txt ch) {
+    char t = ch.txt;
+    char c = ch.col;
+    __asm {
+        mov ah, 0x0E
+        mov al, t
+        mov bh, 0
+        mov bl, c
+        int 10h
+    }
+}
 
 #endif
