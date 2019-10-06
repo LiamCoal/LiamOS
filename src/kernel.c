@@ -32,10 +32,7 @@ void          *nullptr = 0;
 
 void kmain() {
     vmode(0x12);
-    puts("TEST ", lblue);
-    puts("STUFF\n", lmagenta);
-    puts("FFUTS ", lmagenta);
-    puts("TSET", lblue);
+    printver();
 }
 
 void vmode(char v) {

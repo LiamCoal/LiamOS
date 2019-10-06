@@ -3,13 +3,16 @@
 
 #define cls() vmode(curvmode);\
               setcpos(0, 0)
-#define true 255
+#define true 1
 #define false 0
 #define bool char
 #define DESKTOPCOL lblue
 #define YES true
 #define NO false
 #define VERSION "0.0.1a"
+// Change GITVER to NO if not git version.
+#define GITVER YES
+#define GITPATCH "1"
 
 extern unsigned char *memory;
 extern unsigned char  curvmode;
@@ -64,6 +67,18 @@ inline void putc(txt ch) {
         mov bl, c
         int 10h
     }
+}
+
+inline void printver() {
+    puts("LiamOS ", lblue);
+    puts("Version ", gray);
+    puts(VERSION, green);
+    if(GITVER) {
+        puts(" Patch ", red);
+        puts(GITPATCH, lred);
+        puts("\nNot a release.", cyan);
+    }
+    puts("\n", black);
 }
 
 #endif
