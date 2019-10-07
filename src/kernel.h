@@ -10,10 +10,12 @@
 #define YES true
 #define NO false
 #define VERSION "0.0.1a"
-// Change GITVER to NO if not git version.
+// Change GITVER to NO if release.
 #define GITVER YES
 // Please increase GITPATCH when you change something. (in the code)
-#define GITPATCH "3"
+#define GITPATCH "4"
+
+#define interrupt(t) __asm {int t}
 
 extern unsigned char *memory;
 extern unsigned char  curvmode;
@@ -38,6 +40,9 @@ extern int            vyptr;
 extern void          *nullptr;
 extern char           lastkey;
 extern bool           keywaiting;
+extern char           al, ah, bl, bh, cl, ch, dl, dh;
+extern short          ax, bx, cx, dx;
+extern int            eax, ebx, ecx, edx;
 
 typedef struct {
     char txt;
@@ -54,8 +59,9 @@ void sleep(int);
 void puts(char *c, const char col);
 void init_ints();
 void timer_int();
-regs_t getregs();
 char getch();
+void *memset(void*, int, unsigned int);
+void *memcpy(void*, const void*, unsigned int);
 
 /**
  * Simple inline functions.
@@ -93,7 +99,7 @@ inline void printver() {
     puts("\n", black);
 }
 
-inline void out(short addr, char b) {
+inline void out(short addr, unsigned char b) {
     __asm {
         mov al, b
         mov dx, addr
@@ -101,7 +107,7 @@ inline void out(short addr, char b) {
     }
 }
 
-inline char in(short addr) {
+inline unsigned char in(short addr) {
     char b;
     __asm {
         mov al, b
@@ -111,10 +117,48 @@ inline char in(short addr) {
     return b;
 }
 
-inline void interrupt(const char t) {
+inline regs_t getregs() {
+    int meax, mebx, mecx, medx;
     __asm {
-        int t
+        mov meax, eax
+        mov mebx, ebx
+        mov mecx, ecx
+        mov medx, edx
     }
+    regs_t r;
+    r.eax = meax;
+    r.ebx = mebx;
+    r.ecx = mecx;
+    r.edx = medx;
+    return r;
+}
+
+inline void setregs(regs_t regs) {
+    int meax = regs.eax,
+        mebx = regs.ebx,
+        mecx = regs.ecx,
+        medx = regs.edx;
+    __asm {
+        mov eax, meax
+        mov ebx, mebx
+        mov ecx, mecx
+        mov edx, medx
+    }
+}
+
+inline void setcpos(char x, char y) {
+    __asm {
+        mov ah, 0x02
+        mov bh, 0x00
+        mov dh, y
+        mov dl, x
+        int 10h
+    }
+}
+
+inline void putsat(char *s, const char col, char x, char y) {
+    setcpos(x, y);
+    puts(s, col);
 }
 
 #include "keyset.h"

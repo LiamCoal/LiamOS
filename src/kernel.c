@@ -44,13 +44,26 @@ void kmain() {
     printver();
     init_ints();
     while(true) {
-        puts("Please choose an option:\n 1. Boot LiamOS normally.\n\nPress a key: ", white);
+        puts("Please choose an option:\n 1. Boot LiamOS normally.\n 2. Quit.\n\nPress a key: ", white);
         char c = getch();
         putc(totxt(c, white));
         puts("\n", black);
         if(c == '1') {
             type = NORMAL;
             break;
+        } else if(c == '2') {
+            __asm {
+                mov ax, 0x1000
+                mov ax, ss
+                mov sp, 0xf000
+                mov ax, 0x5307
+                mov bx, 0x0001
+                mov cx, 0x0003
+                int 0x15
+            }
+            cls();
+            putsat("You can now power off your PC.", yellow, 25, 12);
+            while(true); // End of execution
         } else {
             putc(totxt(c, lred));
             puts(" is not a valid option\n", red);
@@ -61,15 +74,15 @@ void kmain() {
 char getch() {
     char r;
     __asm {
-        b:
+        back:
         mov ah, 0x01
         int 16h
-        jz b
+        jz back
         mov ah, 0x00
         int 16h
-        mov r, al
+        mov r, ah
     }
-    return r;
+    return keyset[r];
 }
 
 void vmode(char v) {
@@ -130,18 +143,18 @@ void timer_int() {
     asm("iret"); // ! VERY IMPORTANT!!!!!!!
 }
 
-regs_t getregs() {
-    int meax, mebx, mecx, medx;
-    __asm {
-        mov meax, eax
-        mov mebx, ebx
-        mov mecx, ecx
-        mov medx, edx
+void *memset(void *dest, int size, unsigned int x) {
+    for (int i = 0; i < size / sizeof(int); i++)
+    {
+        ((int*)dest)[i] = x;
     }
-    regs_t r;
-    r.eax = meax;
-    r.ebx = mebx;
-    r.ecx = mecx;
-    r.edx = medx;
-    return r;
+    return dest;
+}
+
+void *memcpy(void *dest, const void *src, unsigned int size) {
+    for (int i = 0; i < size; i++)
+    {
+        ((char*)dest)[i] = ((char*)src)[i];
+    }
+    return dest;
 }
