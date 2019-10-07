@@ -29,10 +29,47 @@ const char
     white = 0x0F;
 int            vyptr = 1;
 void          *nullptr = 0;
+char           lastkey = 0;
+bool           keywaiting = NO;
+
+typedef enum
+{
+    NULLTYPE,
+    NORMAL
+} boottype_t;
 
 void kmain() {
+    boottype_t type = NULLTYPE;
     vmode(0x12);
     printver();
+    init_ints();
+    while(true) {
+        puts("Please choose an option:\n 1. Boot LiamOS normally.\n\nPress a key: ", white);
+        char c = getch();
+        putc(totxt(c, white));
+        puts("\n", black);
+        if(c == '1') {
+            type = NORMAL;
+            break;
+        } else {
+            putc(totxt(c, lred));
+            puts(" is not a valid option\n", red);
+        }
+    }
+}
+
+char getch() {
+    char r;
+    __asm {
+        b:
+        mov ah, 0x01
+        int 16h
+        jz b
+        mov ah, 0x00
+        int 16h
+        mov r, al
+    }
+    return r;
 }
 
 void vmode(char v) {
@@ -62,4 +99,49 @@ void puts(char *s, char c) {
         putc(totxt(ch, c));
         i++;
     }
+}
+
+void init_ints() {
+    __asm {
+        push ds
+        mov ax, 0
+        mov ds, ax
+        cli
+        ; init timer
+        mov al, 0x36
+        out 0x43, al
+        mov ax, 1193180/100
+        out 0x40, al
+        mov al, ah
+        out 0x40, al
+        mov ax, timer_int
+        mov word ptr ds:[0x00], ax
+        mov word ptr ds:[0x02], cs
+        sti
+    }
+}
+
+void timer_int() {
+    /**
+     * Put stuff that needs to happen every 100th 
+     * of a second here
+     */
+
+    asm("iret"); // ! VERY IMPORTANT!!!!!!!
+}
+
+regs_t getregs() {
+    int meax, mebx, mecx, medx;
+    __asm {
+        mov meax, eax
+        mov mebx, ebx
+        mov mecx, ecx
+        mov medx, edx
+    }
+    regs_t r;
+    r.eax = meax;
+    r.ebx = mebx;
+    r.ecx = mecx;
+    r.edx = medx;
+    return r;
 }

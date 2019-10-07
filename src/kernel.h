@@ -12,7 +12,8 @@
 #define VERSION "0.0.1a"
 // Change GITVER to NO if not git version.
 #define GITVER YES
-#define GITPATCH "1"
+// Please increase GITPATCH when you change something. (in the code)
+#define GITPATCH "3"
 
 extern unsigned char *memory;
 extern unsigned char  curvmode;
@@ -35,15 +36,26 @@ extern const char
     white;
 extern int            vyptr;
 extern void          *nullptr;
+extern char           lastkey;
+extern bool           keywaiting;
 
 typedef struct {
     char txt;
     char col;
 } txt;
 
+typedef struct {
+    int eax, ebx, ecx, edx;
+} regs_t;
+
+void kmain();
 void vmode(char);
 void sleep(int);
 void puts(char *c, const char col);
+void init_ints();
+void timer_int();
+regs_t getregs();
+char getch();
 
 /**
  * Simple inline functions.
@@ -80,5 +92,31 @@ inline void printver() {
     }
     puts("\n", black);
 }
+
+inline void out(short addr, char b) {
+    __asm {
+        mov al, b
+        mov dx, addr
+        out dx, al
+    }
+}
+
+inline char in(short addr) {
+    char b;
+    __asm {
+        mov al, b
+        mov dx, addr
+        in al, dx
+    }
+    return b;
+}
+
+inline void interrupt(const char t) {
+    __asm {
+        int t
+    }
+}
+
+#include "keyset.h"
 
 #endif
