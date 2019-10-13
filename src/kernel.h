@@ -13,7 +13,7 @@
 // Change GITVER to NO if release.
 #define GITVER YES
 // Please increase GITPATCH when you change something. (in the code)
-#define GITPATCH "4"
+#define GITPATCH "5"
 
 #define interrupt(t) __asm {int t}
 
@@ -43,6 +43,7 @@ extern bool           keywaiting;
 extern char           al, ah, bl, bh, cl, ch, dl, dh;
 extern short          ax, bx, cx, dx;
 extern int            eax, ebx, ecx, edx;
+extern const char     keyset[0xFF];
 
 typedef struct {
     char txt;
@@ -62,6 +63,9 @@ void timer_int();
 char getch();
 void *memset(void*, int, unsigned int);
 void *memcpy(void*, const void*, unsigned int);
+void aniboot();
+void normalboot();
+void playaniboot();
 
 /**
  * Simple inline functions.
@@ -161,6 +165,49 @@ inline void putsat(char *s, const char col, char x, char y) {
     puts(s, col);
 }
 
-#include "keyset.h"
+inline void keybeep() {
+    __asm {
+        in al, 0x61
+        and al, 1111b
+        or al, 10b
+        out 0x61, al
+    }
+    sleep(750);
+    __asm {
+        in al, 0x61
+        and al, 1101b
+        out 0x61, al
+    }
+}
+
+inline void beep() {
+    __asm {
+        in al, 0x61
+        and al, 1111b
+        or al, 10b
+        out 0x61, al
+    }
+    sleep(7500);
+    __asm {
+        in al, 0x61
+        and al, 1101b
+        out 0x61, al
+    }
+}
+
+inline void confuzzled() {
+    puts("LIAMOS IS CONUZZLED! POWER OFF!", lred);
+    __asm {
+        mov ax, 0x1000
+        mov ax, ss
+        mov sp, 0xf000
+        mov ax, 0x5307
+        mov bx, 0x0001
+        mov cx, 0x0003
+        int 0x15
+    }
+    puts("You're PC does not support auto power off. You may now turn your PC off manually.", yellow);
+    while(true);
+}
 
 #endif
