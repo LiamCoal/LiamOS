@@ -35,24 +35,29 @@ bool           keywaiting = NO;
 typedef enum
 {
     NULLTYPE,
-    NORMAL
+    NORMAL,
+    ANIBOOT_SILENT
 } boottype_t;
 
 void kmain() {
     boottype_t type = NULLTYPE;
     vmode(0x12);
     printver();
-    init_ints();
     while(true) {
-        puts("Please choose an option:\n 1. Boot LiamOS normally.\n 2. Quit.\n\nPress a key: ", white);
-        char c = getch();
-        keybeep();
-        putc(totxt(c, white));
-        puts("\n", black);
+        if(GITVER) puts("Please choose an option:\n 1. Boot LiamOS normally.\n 2. Boot LiamOS SKIPPING aniboot() (for debugging)\n 3. Quit.\n\nPress a key: ", white);
+        char c = GITVER ? getch() : '1';
+        if(GITVER) {
+            keybeep();
+            putc(totxt(c, white));
+            puts("\n", black);
+        }
         if(c == '1') {
             type = NORMAL;
             break;
         } else if(c == '2') {
+            type = ANIBOOT_SILENT;
+            break;
+        } else if(c == '3') {
             __asm {
                 mov ax, 0x1000
                 mov ax, ss
@@ -74,6 +79,8 @@ void kmain() {
     {
     case NORMAL:
         normalboot();
+    case ANIBOOT_SILENT:
+        do_boot_proc(); // Skips the aniboot.
     default:
         break;
     }
@@ -129,15 +136,16 @@ void init_ints() {
         mov ds, ax
         cli
         ; init timer
+        mov ax, timer_int
+        mov word ptr ds:[0x00], ax
+        mov word ptr ds:[0x02], cs
         mov al, 0x36
         out 0x43, al
         mov ax, 1193180/100
         out 0x40, al
         mov al, ah
         out 0x40, al
-        mov ax, timer_int
-        mov word ptr ds:[0x00], ax
-        mov word ptr ds:[0x02], cs
+        ; 
         sti
     }
 }
@@ -151,10 +159,10 @@ void timer_int() {
     asm("iret"); // ! VERY IMPORTANT!!!!!!!
 }
 
-void *memset(void *dest, int x, unsigned int size) {
+void *memset(void *dest, char x, unsigned int size) {
     for (int i = 0; i < size / sizeof(int); i++)
     {
-        ((int*)dest)[i] = x;
+        ((char*)dest)[i] = x;
     }
     return dest;
 }
@@ -169,40 +177,40 @@ void *memcpy(void *dest, const void *src, unsigned int size) {
 
 void aniboot() {
     // i wont be surprised if there is an error here. if you see one, report it please
-    putsat("L", lred, 37, 12);
+    putsat("L", lred, 37 - (VERSION_SLEN / 2), 12);
     sleep(72000);
-    putsat("L", lgreen, 37, 12);
-    putsat("I", lred, 38, 12);
+    putsat("L", lgreen, 37 - (VERSION_SLEN / 2), 12);
+    putsat("I", lred, 38 - (VERSION_SLEN / 2), 12);
     sleep(72000);
-    putsat("L", lblue, 37, 12);
-    putsat("I", lgreen, 38, 12);
-    putsat("A", lred, 39, 12);
+    putsat("L", lblue, 37 - (VERSION_SLEN / 2), 12);
+    putsat("I", lgreen, 38 - (VERSION_SLEN / 2), 12);
+    putsat("A", lred, 39 - (VERSION_SLEN / 2), 12);
     sleep(72000);
-    putsat("L", white, 37, 12); // Once the char is white, stop messing with it.
-    putsat("I", lblue, 38, 12);
-    putsat("A", lgreen, 39, 12);
-    putsat("M", lred, 40, 12);
+    putsat("L", white, 37 - (VERSION_SLEN / 2), 12); // Once the char is white, stop messing with it.
+    putsat("I", lblue, 38 - (VERSION_SLEN / 2), 12);
+    putsat("A", lgreen, 39 - (VERSION_SLEN / 2), 12);
+    putsat("M", lred, 40 - (VERSION_SLEN / 2), 12);
     sleep(72000);
-    putsat("I", white, 38, 12);
-    putsat("A", lblue, 39, 12);
-    putsat("M", lgreen, 40, 12);
+    putsat("I", white, 38 - (VERSION_SLEN / 2), 12);
+    putsat("A", lblue, 39 - (VERSION_SLEN / 2), 12);
+    putsat("M", lgreen, 40 - (VERSION_SLEN / 2), 12);
     // Give the illusion there is a space
     sleep(72000);
-    putsat("A", white, 39, 12);
-    putsat("M", lblue, 40, 12);
-    putsat("O", lred, 42, 12);
+    putsat("A", white, 39 - (VERSION_SLEN / 2), 12);
+    putsat("M", lblue, 40 - (VERSION_SLEN / 2), 12);
+    putsat("O", lred, 42 - (VERSION_SLEN / 2), 12);
     sleep(72000);
-    putsat("M", white, 40, 12);
-    putsat("O", lgreen, 42, 12);
-    putsat("S", lred, 43, 12);
+    putsat("M", white, 40 - (VERSION_SLEN / 2), 12);
+    putsat("O", lgreen, 42 - (VERSION_SLEN / 2), 12);
+    putsat("S", lred, 43 - (VERSION_SLEN / 2), 12);
     sleep(72000);
-    putsat("O", lblue, 42, 12);
-    putsat("S", lgreen, 43, 12);
+    putsat("O", lblue, 42 - (VERSION_SLEN / 2), 12);
+    putsat("S", lgreen, 43 - (VERSION_SLEN / 2), 12);
     sleep(72000);
-    putsat("O", white, 42, 12);
-    putsat("S", lblue, 43, 12);
+    putsat("O", white, 42 - (VERSION_SLEN / 2), 12);
+    putsat("S", lblue, 43 - (VERSION_SLEN / 2), 12);
     sleep(72000);
-    putsat("S", white, 43, 12);
+    putsat("S", white, 43 - (VERSION_SLEN / 2), 12);
     sleep(72000);
 }
 
@@ -210,28 +218,27 @@ void playaniboot() {
     cls();
     aniboot();
     putsat("by Liam Cole (LiamCoal)", dgray, 28, 14);
-    sleep(72000);
+    putsat(VERSION, dgray, 45 - (VERSION_SLEN / 2), 12);
+    sleep(7200*3);
     putsat("by Liam Cole (LiamCoal)", gray, 28, 14);
-    sleep(72000);
+    putsat(VERSION, gray, 45 - (VERSION_SLEN / 2), 12);
+    sleep(7200*3);
     putsat("by Liam Cole (LiamCoal)", white, 28, 14);
-    sleep(72000);
-    aniboot();
-    putsat("by Liam Cole (LiamCoal)", gray, 28, 14);
-    sleep(72000);
-    putsat("by Liam Cole (LiamCoal)", dgray, 28, 14);
-    sleep(72000);
-    putsat("by Liam Cole (LiamCoal)", black, 28, 14);
-    sleep(72000);
-    putsat("LIAM OS", gray, 37, 12);
-    sleep(72000);
-    putsat("LIAM OS", dgray, 37, 12);
-    sleep(72000);
-    putsat("LIAM OS", black, 37, 12);
+    putsat(VERSION, white, 45 - (VERSION_SLEN / 2), 12);
     sleep(72000);
 }
 
 void normalboot() {
     playaniboot();
+    do_boot_proc();
+}
+
+void do_boot_proc() {
+    putsat("Initialize interrupts...", lblue, 0, 29);
+    init_ints();
+    putsat("Initialize interrupts... DONE", lgreen, 0, 29);
+    sleep(7200);
+    putsat("Disk ops...                  ", lblue, 0, 29);
 }
 
 const char keyset[0xFF] = {

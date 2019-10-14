@@ -9,11 +9,12 @@
 #define DESKTOPCOL lblue
 #define YES true
 #define NO false
-#define VERSION "0.0.1a"
+#define VERSION "0.0.2a"
+#define VERSION_SLEN 6
 // Change GITVER to NO if release.
 #define GITVER YES
 // Please increase GITPATCH when you change something. (in the code)
-#define GITPATCH "5"
+#define GITPATCH "6"
 
 #define interrupt(t) __asm {int t}
 
@@ -61,11 +62,12 @@ void puts(char *c, const char col);
 void init_ints();
 void timer_int();
 char getch();
-void *memset(void*, int, unsigned int);
+void *memset(void*, char, unsigned int);
 void *memcpy(void*, const void*, unsigned int);
 void aniboot();
 void normalboot();
 void playaniboot();
+void do_boot_proc();
 
 /**
  * Simple inline functions.
@@ -165,7 +167,7 @@ inline void putsat(char *s, const char col, char x, char y) {
     puts(s, col);
 }
 
-inline void keybeep() {
+inline void keybeep() { // Really short beep for the menuing systems.
     __asm {
         in al, 0x61
         and al, 1111b
@@ -197,6 +199,7 @@ inline void beep() {
 
 inline void confuzzled() {
     puts("LIAMOS IS CONUZZLED! POWER OFF!", lred);
+    beep();
     __asm {
         mov ax, 0x1000
         mov ax, ss
