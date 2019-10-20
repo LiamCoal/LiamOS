@@ -14,9 +14,7 @@
 // Change GITVER to NO if release.
 #define GITVER YES
 // Please increase GITPATCH when you change something. (in the code)
-#define GITPATCH "6"
-
-#define interrupt(t) __asm {int t}
+#define GITPATCH "1"
 
 extern unsigned char *memory;
 extern unsigned char  curvmode;
@@ -56,18 +54,15 @@ typedef struct {
 } regs_t;
 
 void kmain();
-void vmode(char);
+void vmode(unsigned char);
 void sleep(int);
 void puts(char *c, const char col);
 void init_ints();
-void timer_int();
 char getch();
 void *memset(void*, char, unsigned int);
 void *memcpy(void*, const void*, unsigned int);
-void aniboot();
-void normalboot();
-void playaniboot();
 void do_boot_proc();
+char *getstr(char);
 
 /**
  * Simple inline functions.
@@ -198,8 +193,9 @@ inline void beep() {
 }
 
 inline void confuzzled() {
-    puts("LIAMOS IS CONUZZLED! POWER OFF!", lred);
+    puts("LIAMOS IS CONFUZZLED! POWER OFF!", lred);
     beep();
+    // TODO put this asm in a function (power_off?):
     __asm {
         mov ax, 0x1000
         mov ax, ss

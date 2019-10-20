@@ -9,7 +9,7 @@ void _start() {
 }
 
 unsigned char *memory = (unsigned char*)0x00500;
-unsigned char  curvmode = 0x03;
+unsigned char  curvmode = 0x13;
 const char
     black = 0x00,
     blue = 0x01,
@@ -35,19 +35,18 @@ bool           keywaiting = NO;
 typedef enum
 {
     NULLTYPE,
-    NORMAL,
-    ANIBOOT_SILENT
+    NORMAL
 } boottype_t;
 
 void kmain() {
     boottype_t type = NULLTYPE;
-    vmode(0x12);
+    vmode(0x13);
     printver();
     while(true) {
-        if(GITVER) puts("Please choose an option:\n 1. Boot LiamOS normally.\n 2. Boot LiamOS SKIPPING aniboot() (for debugging)\n 3. Quit.\n\nPress a key: ", white);
+        // If not git version, autoselect NORMAL
+        if(GITVER) puts("Please choose an option:\n 1. Boot LiamOS normally.\n 2. Test getstr() Q. Quit.\n\nPress a key: ", white);
         char c = GITVER ? getch() : '1';
         if(GITVER) {
-            keybeep();
             putc(totxt(c, white));
             puts("\n", black);
         }
@@ -55,9 +54,13 @@ void kmain() {
             type = NORMAL;
             break;
         } else if(c == '2') {
-            type = ANIBOOT_SILENT;
-            break;
-        } else if(c == '3') {
+            puts("> ", lblue);
+            char *s = getstr('\n');
+            puts("You entered '", blue);
+            puts(s, lblue);
+            puts("'\n", blue);
+        } else if(c == 'Q') {
+            // TODO put this asm in a function (power_off?):
             __asm {
                 mov ax, 0x1000
                 mov ax, ss
@@ -78,16 +81,20 @@ void kmain() {
     switch (type)
     {
     case NORMAL:
-        normalboot();
-    case ANIBOOT_SILENT:
-        do_boot_proc(); // Skips the aniboot.
+        do_boot_proc();
+        break;
     default:
+        /**
+         * Should never be reached, but if it is, handle it.
+         */
+        confuzzled(); 
         break;
     }
 }
 
 char getch() {
     char r;
+    // This is the only place this is used, so its fine here.
     __asm {
         back:
         mov ah, 0x01
@@ -97,10 +104,32 @@ char getch() {
         int 16h
         mov r, ah
     }
+    keybeep();
     return keyset[r];
 }
 
-void vmode(char v) {
+char *getstr(char ending) {
+    char *ret = (char*)0x9100; // Get memory pointer
+    memset(ret, 0, 0x100); // Fill that with 256 zeros
+    int i = 0; // +i variable
+    while(true) {
+        char c = getch();
+        if(c == '\b' && i > 0) {
+            puts("\b \b", black);
+            i--;
+            ret[i] = 0;
+        } else if(c == ending) {
+            puts("\n", black);
+            return ret;
+        } else if(i < 0x100) {
+            putc(totxt(c, white));
+            ret[i] = c;
+            i++;
+        }
+    }
+}
+
+void vmode(unsigned char v) {
     __asm {
         mov ah, 0
         mov al, v
@@ -135,28 +164,21 @@ void init_ints() {
         mov ax, 0
         mov ds, ax
         cli
-        ; init timer
-        mov ax, timer_int
-        mov word ptr ds:[0x00], ax
-        mov word ptr ds:[0x02], cs
-        mov al, 0x36
-        out 0x43, al
-        mov ax, 1193180/100
-        out 0x40, al
-        mov al, ah
-        out 0x40, al
-        ; 
+        ; int 80h
+        mov ax, int80h
+        mov word ptr [(0x80 * 4) + 0], cs
+        mov word ptr [(0x80 * 4) + 2], ax
         sti
     }
 }
 
-void timer_int() {
-    /**
-     * Put stuff that needs to happen every 100th 
-     * of a second here
-     */
-
-    asm("iret"); // ! VERY IMPORTANT!!!!!!!
+void int80h() {
+    char func;
+    __asm {
+        mov func, ah
+    }
+    keybeep();
+    asm("iret");
 }
 
 void *memset(void *dest, char x, unsigned int size) {
@@ -175,70 +197,14 @@ void *memcpy(void *dest, const void *src, unsigned int size) {
     return dest;
 }
 
-void aniboot() {
-    // i wont be surprised if there is an error here. if you see one, report it please
-    putsat("L", lred, 37 - (VERSION_SLEN / 2), 12);
-    sleep(72000);
-    putsat("L", lgreen, 37 - (VERSION_SLEN / 2), 12);
-    putsat("I", lred, 38 - (VERSION_SLEN / 2), 12);
-    sleep(72000);
-    putsat("L", lblue, 37 - (VERSION_SLEN / 2), 12);
-    putsat("I", lgreen, 38 - (VERSION_SLEN / 2), 12);
-    putsat("A", lred, 39 - (VERSION_SLEN / 2), 12);
-    sleep(72000);
-    putsat("L", white, 37 - (VERSION_SLEN / 2), 12); // Once the char is white, stop messing with it.
-    putsat("I", lblue, 38 - (VERSION_SLEN / 2), 12);
-    putsat("A", lgreen, 39 - (VERSION_SLEN / 2), 12);
-    putsat("M", lred, 40 - (VERSION_SLEN / 2), 12);
-    sleep(72000);
-    putsat("I", white, 38 - (VERSION_SLEN / 2), 12);
-    putsat("A", lblue, 39 - (VERSION_SLEN / 2), 12);
-    putsat("M", lgreen, 40 - (VERSION_SLEN / 2), 12);
-    // Give the illusion there is a space
-    sleep(72000);
-    putsat("A", white, 39 - (VERSION_SLEN / 2), 12);
-    putsat("M", lblue, 40 - (VERSION_SLEN / 2), 12);
-    putsat("O", lred, 42 - (VERSION_SLEN / 2), 12);
-    sleep(72000);
-    putsat("M", white, 40 - (VERSION_SLEN / 2), 12);
-    putsat("O", lgreen, 42 - (VERSION_SLEN / 2), 12);
-    putsat("S", lred, 43 - (VERSION_SLEN / 2), 12);
-    sleep(72000);
-    putsat("O", lblue, 42 - (VERSION_SLEN / 2), 12);
-    putsat("S", lgreen, 43 - (VERSION_SLEN / 2), 12);
-    sleep(72000);
-    putsat("O", white, 42 - (VERSION_SLEN / 2), 12);
-    putsat("S", lblue, 43 - (VERSION_SLEN / 2), 12);
-    sleep(72000);
-    putsat("S", white, 43 - (VERSION_SLEN / 2), 12);
-    sleep(72000);
-}
-
-void playaniboot() {
-    cls();
-    aniboot();
-    putsat("by Liam Cole (LiamCoal)", dgray, 28, 14);
-    putsat(VERSION, dgray, 45 - (VERSION_SLEN / 2), 12);
-    sleep(7200*3);
-    putsat("by Liam Cole (LiamCoal)", gray, 28, 14);
-    putsat(VERSION, gray, 45 - (VERSION_SLEN / 2), 12);
-    sleep(7200*3);
-    putsat("by Liam Cole (LiamCoal)", white, 28, 14);
-    putsat(VERSION, white, 45 - (VERSION_SLEN / 2), 12);
-    sleep(72000);
-}
-
-void normalboot() {
-    playaniboot();
-    do_boot_proc();
-}
-
 void do_boot_proc() {
-    putsat("Initialize interrupts...", lblue, 0, 29);
+    puts("Initialize interrupts... ", lblue);
     init_ints();
-    putsat("Initialize interrupts... DONE", lgreen, 0, 29);
-    sleep(7200);
-    putsat("Disk ops...                  ", lblue, 0, 29);
+    puts("DONE\n", lgreen);
+    puts("Clear Kernel Memory... ", lblue);
+    memset((void*)0x9000, 0, 0x4FF);
+    puts("DONE\n", lgreen);
+    return;
 }
 
 const char keyset[0xFF] = {
@@ -285,8 +251,8 @@ const char keyset[0xFF] = {
     0, // Function key, don't do anything
     '\'', // Quote
     '`',
-    0, // LShift pressed, don't do anything
-    '\\', // Backslash
+    '\e', // LShift pressed, don't do anything
+    // '\\', // * Backslash "nonus"
     'Z',
     'X',
     'C',
@@ -298,7 +264,8 @@ const char keyset[0xFF] = {
     '.',
     '/',
     0, // RShift pressed, don't do anything
-    0, // Grey*... what does that mean...
+    0, // PrintScr
+    0, // Alt
     ' ',
     0, // CapsLock pressed, don't do anything
     /**
@@ -320,11 +287,11 @@ const char keyset[0xFF] = {
     0, // Home pressed, don't do anything
     0, // Up pressed, don't do anything
     0, // PgUp pressed, don't do anything
-    0, // Grey-... wat
+    0, // Grey-... wat // TODO Liam just figured out these are keypad buttons...
     0, // Left pressed, don't do anything
     0, // KeyPad, don't do anything
     0, // Right pressed, don't do anything
-    0, // Another Grey one (grey+)
+    0, // Another Grey one (grey+) // TODO Liam just figured out these are keypad buttons...
     0, // End pressed, don't do anything
     0, // Down pressed, don't do anything
     0, // PgDn pressed, don't do anything
@@ -332,7 +299,7 @@ const char keyset[0xFF] = {
     0, // Delete pressed, don't do anything
     0, // SysReq pressed, don't do anything
     0, // F11 (version 2?) pressed, don't do anything
-    0, // Left \ pressed, don't do anything
+    '\\',
     0, // Shouldn't be reached?
     0, // Function key, don't do anything
     0, // F15 (version 47?), don't do anything
@@ -358,14 +325,14 @@ const char keyset[0xFF] = {
     0, // ExSel pressed, don't do anything
     0, // -- pressed, again?
     0, // Clear pressed, don't do anything
-    0, // "Note2", more like "version 2000000"
-    0, // "Note2", more like "version 2000001"
-    0, // "Note2", more like "version 2000002"
-    0, // "Note2", more like "version 2000003"
-    0, // "Note2", more like "version 2000004"
-    0, // "Note2", more like "version 2000005"
-    0, // "Note2", more like "version 2000006"
-    0, // "Note2", more like "version 2000007"
+    0, // * "non-U.S."
+    0, // * "non-U.S."
+    0, // * "non-U.S."
+    0, // * "non-U.S."
+    0, // * "non-U.S."
+    0, // * "non-U.S."
+    0, // * "non-U.S."
+    0, // * "non-U.S."
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, // Self tested? Good! But I don't care.
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
