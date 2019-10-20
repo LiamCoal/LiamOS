@@ -44,7 +44,7 @@ void kmain() {
     printver();
     while(true) {
         // If not git version, autoselect NORMAL
-        if(GITVER) puts("Please choose an option:\n 1. Boot LiamOS normally.\n 2. Test getstr() Q. Quit.\n\nPress a key: ", white);
+        if(GITVER) puts("Please choose an option:\n 1. Boot LiamOS normally.\n Q. Quit.\n\nPress a key: ", white);
         char c = GITVER ? getch() : '1';
         if(GITVER) {
             putc(totxt(c, white));
@@ -53,12 +53,6 @@ void kmain() {
         if(c == '1') {
             type = NORMAL;
             break;
-        } else if(c == '2') {
-            puts("> ", lblue);
-            char *s = getstr('\n');
-            puts("You entered '", blue);
-            puts(s, lblue);
-            puts("'\n", blue);
         } else if(c == 'Q') {
             // TODO put this asm in a function (power_off?):
             __asm {

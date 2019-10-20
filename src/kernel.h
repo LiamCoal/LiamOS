@@ -14,7 +14,7 @@
 // Change GITVER to NO if release.
 #define GITVER YES
 // Please increase GITPATCH when you change something. (in the code)
-#define GITPATCH "1"
+#define GITPATCH "2"
 
 extern unsigned char *memory;
 extern unsigned char  curvmode;
