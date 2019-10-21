@@ -56,3 +56,5 @@ make clean LIAMOS1.xz
 * qemu is really slow on my computer. Maybe soon it will change but rn, theres a makefile rule to build a VirtualBox image. (booting from floppy is not syslinux approved) I would recomend using real hardware instead of VM, but its there just in case. ALSO, keep in mind that some code that works on VM, might not work on real hardware. Please test both before creating a pull request or issue.
 
 * This is for x86/x86_64 only. Using any other arcitecture with LiamOS won't work.
+
+* LiamOS will not compile on macOS without extreme hackery, due to stupidity with clang.
