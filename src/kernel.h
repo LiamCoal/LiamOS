@@ -14,7 +14,7 @@
 // Change GITVER to NO if release.
 #define GITVER YES
 // Please increase GITPATCH when you change something. (in the code)
-#define GITPATCH "3"
+#define GITPATCH "4"
 
 extern unsigned char *memory;
 extern unsigned char  curvmode;
@@ -63,9 +63,6 @@ void *memset(void*, char, unsigned int);
 void *memcpy(void*, const void*, unsigned int);
 void do_boot_proc();
 char *getstr(char);
-char reset_disk(char);
-char read_disk(void *, short, char, char, char);
-char write_disk(void *, short, char, char, char);
 
 /**
  * Simple inline functions.
@@ -210,6 +207,63 @@ inline void confuzzled() {
     }
     puts("You're PC does not support auto power off. You may now turn your PC off manually.", yellow);
     while(true);
+}
+
+inline char reset_disk(char disk) {
+    char retcode = 0;
+    __asm {
+        mov ah, 0x00
+        mov dl, disk
+        int 13h
+        jnc end
+        mov retcode, ah
+        end:
+    }
+    return retcode;
+}
+
+inline char read_disk(void *data, short sector, char count, char disk, char head) {
+    char retcode = 0;
+    int data_int = (int)data;
+    short segment = data_int >> 16;
+    short address = data_int >>  0;
+    __asm {
+        mov ah, 0x02
+        mov al, count
+        mov cx, sector
+        mov dh, head
+        mov dl, disk
+        mov bx, segment
+        mov es, bx
+        mov bx, address
+        int 13h
+        jnc end
+        mov retcode, ah
+        end:
+    }
+    return retcode;
+}
+
+inline char write_disk(void *data, short sector, char count, char disk, char head) {
+    char retcode = 0;
+    int data_int = (int)data;
+    short segment = data_int >> 16;
+    short address = data_int >>  0;
+    __asm {
+        mov ah, 0x03
+        mov al, count
+        mov cx, sector
+        mov dh, head
+        mov dl, disk
+        mov bx, segment
+        mov es, bx
+        mov bx, address
+        int 13h
+        jnc end
+        mov retcode, ah
+        end:
+    }
+    return retcode;
 }
 
 #endif
