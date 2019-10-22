@@ -201,6 +201,61 @@ void do_boot_proc() {
     return;
 }
 
+char reset_disk(char disk) {
+    char retcode = 0;
+    __asm {
+        mov ah, 0x00
+        mov dl, disk
+        int 13h
+        jnc end
+        mov retcode, ah
+        end:
+    }
+    return retcode;
+}
+
+char read_disk(void *data, short sector, char count, char disk, char head) {
+    char retcode = 0;
+    short segment = sector >> 16;
+    short address = sector >>  0;
+    __asm {
+        mov ah, 0x02
+        mov al, count
+        mov cx, sector
+        mov dh, head
+        mov dl, disk
+        mov bx, segment
+        mov es, bx
+        mov bx, address
+        int 13h
+        jnc end
+        mov retcode, ah
+        end:
+    }
+    return retcode;
+}
+
+char write_disk(void *data, short sector, char count, char disk, char head) {
+    char retcode = 0;
+    short segment = sector >> 16;
+    short address = sector >>  0;
+    __asm {
+        mov ah, 0x03
+        mov al, count
+        mov cx, sector
+        mov dh, head
+        mov dl, disk
+        mov bx, segment
+        mov es, bx
+        mov bx, address
+        int 13h
+        jnc end
+        mov retcode, ah
+        end:
+    }
+    return retcode;
+}
+
 const char keyset[0xFF] = {
     0, // KBD buffer full, don't do anything
     0, // ESC pressed, don't do anything

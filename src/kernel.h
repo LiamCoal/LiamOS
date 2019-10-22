@@ -14,7 +14,7 @@
 // Change GITVER to NO if release.
 #define GITVER YES
 // Please increase GITPATCH when you change something. (in the code)
-#define GITPATCH "2"
+#define GITPATCH "3"
 
 extern unsigned char *memory;
 extern unsigned char  curvmode;
@@ -63,6 +63,9 @@ void *memset(void*, char, unsigned int);
 void *memcpy(void*, const void*, unsigned int);
 void do_boot_proc();
 char *getstr(char);
+char reset_disk(char);
+char read_disk(void *, short, char, char, char);
+char write_disk(void *, short, char, char, char);
 
 /**
  * Simple inline functions.
