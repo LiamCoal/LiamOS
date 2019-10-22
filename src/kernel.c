@@ -40,11 +40,12 @@ typedef enum
 
 void kmain() {
     boottype_t type = NULLTYPE;
-    vmode(0x13);
+    vmode(0x12);
     printver();
+    reset_disk(0x80); // Initialization?
     while(true) {
         // If not git version, autoselect NORMAL
-        if(GITVER) puts("Please choose an option:\n 1. Boot LiamOS normally.\n Q. Quit.\n\nPress a key: ", white);
+        if(GITVER) puts("Please choose an option:\n 1. Boot LiamOS normally.\n 2. Test diskops.\n Q. Quit.\n\nPress a key: ", white);
         char c = GITVER ? getch() : '1';
         if(GITVER) {
             putc(totxt(c, white));
@@ -53,6 +54,11 @@ void kmain() {
         if(c == '1') {
             type = NORMAL;
             break;
+        } else if(c == '2') {
+            memset((void*)0x500, 0, 0x200);
+            char a = read_disk((void*)0x500, 0, 1, 0x80, 1);
+            if(a != 0) puts("Read bad.\n", lred);
+            else puts("Read success.\n", lgreen);
         } else if(c == 'Q') {
             // TODO put this asm in a function (power_off?):
             __asm {
