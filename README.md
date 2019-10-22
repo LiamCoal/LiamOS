@@ -19,7 +19,7 @@ LiamOS is a really badly written operating system that is an experiment.
 
 ### At all times
 
-Makefile: Allows you to use make to build the project
+Makefile: Allows you to use make to build the project  
 README.md: What you're reading right now  
 run.sh: Runs LiamOS in an emulator. Prefer not to run it directly, use make run32.
 boot.cfg: Syslinux config file. [see Syslinux](syslinux.org).  
