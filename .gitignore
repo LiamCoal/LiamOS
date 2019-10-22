@@ -8,5 +8,6 @@ out
 *.xz
 *.zip
 *.vdi
+.DS_Store
 
 # lots of things
