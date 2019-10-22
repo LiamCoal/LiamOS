@@ -18,8 +18,8 @@ if [[ "$2" == "upgrade" ]]; then
     sudo mount $DEVICE img
     echo -e "\e[32;1mCleaning device\e[0m(\e[33;1mrequires sudo\e[0m"
     echo -e "\e[32;1mFiles to be deleted:\e[31;1m"
-    sudo find img
-    sudo find img -delete
+    sudo find img -name "*.bin"
+    sudo find img -name "*.bin" -delete
     echo -e "\e[32;1mCopying files \e[0m(\e[33;1mrequires sudo\e[0m)"
     FILES=$(find out -type f)
     echo -e "\e[32;1mFiles to copy:\n\e[34;1m$FILES\e[0m"
