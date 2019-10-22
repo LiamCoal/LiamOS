@@ -1,8 +1,8 @@
 # LiamOS
 
 **Readme is very likely outdated:**
-Last update: 10/06/2019  
-LiamOS Version: 0.0.1a (ALPHA)
+Last update: 10/22/2019  
+LiamOS Version: 0.0.2a (ALPHA)
 
 ## Dependencies
 
@@ -49,6 +49,40 @@ If you want to package LIAMOS into a .xz file (**super** _compressed_), use
 
 ```shell
 make clean LIAMOS1.xz
+```
+
+## Installing
+
+### The easy way. (compiles for you)
+
+Replace sdX with your drives device name (see below)
+
+```shell
+./ddover.sh /dev/sdX
+```
+
+### The trickier way (does not compile for you)
+
+First, compile like above, then replace sdX with your drive's device name (see below).
+
+```shell
+sudo dd if=LIAMOS1.img of=/dev/sdX bs=512 status=progress
+```
+
+#### Quick checking the device number
+
+```shell
+# Remove all drives
+ls /dev/sd*
+# => /dev/sda /dev/sda...
+
+# Insert your drive that you want to write LiamOS to and wait about 15 seconds for linux to notice
+# OR if you have a read/write light on your drive, wait until the second read/write is done
+# It should be there
+ls /dev/sd*
+# => [sda stuff] + /dev/sdb or /dev/sdc etc.
+# What you should know is that it should have just appeared. Not have been there before
+# The one that just appeared is your USB drive, use it in the above installs
 ```
 
 ## Some quick warning(s)
