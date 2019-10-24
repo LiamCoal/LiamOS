@@ -9,5 +9,6 @@ out
 *.zip
 *.vdi
 .DS_Store
+userprog
 
 # lots of things

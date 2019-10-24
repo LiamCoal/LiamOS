@@ -98,29 +98,6 @@ void puts(char *s, char c) {
     }
 }
 
-void init_ints() {
-    __asm {
-        push ds
-        mov ax, 0
-        mov ds, ax
-        cli
-        ; int 80h
-        mov ax, int80h
-        mov word ptr [(0x80 * 4) + 0], cs
-        mov word ptr [(0x80 * 4) + 2], ax
-        sti
-    }
-}
-
-void int80h() {
-    char func;
-    __asm {
-        mov func, ah
-    }
-    keybeep();
-    asm("iret");
-}
-
 void *memset(void *dest, char x, unsigned int size) {
     for (int i = 0; i < size / sizeof(int); i++)
     {
