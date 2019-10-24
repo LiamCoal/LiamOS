@@ -14,7 +14,7 @@
 // Change GITVER to NO if release.
 #define GITVER YES
 // Please increase GITPATCH when you change something. (in the code)
-#define GITPATCH "4"
+#define GITPATCH "5"
 
 extern unsigned char *memory;
 extern unsigned char  curvmode;
@@ -50,6 +50,22 @@ typedef struct {
 } txt;
 
 typedef struct {
+    char name[8];
+    char extn[3];
+    char file_attr, 
+         user_attr,
+         del_char;
+    short time_created,
+          date_created,
+          date_accessed,
+          access_rights,
+          last_mod_time,
+          last_mod_date,
+          cluster;
+    int byte_size;
+} dir_entry_t;
+
+typedef struct {
     int eax, ebx, ecx, edx;
 } regs_t;
 
@@ -63,6 +79,9 @@ void *memset(void*, char, unsigned int);
 void *memcpy(void*, const void*, unsigned int);
 void do_boot_proc();
 char *getstr(char);
+void set_bpb_vars();
+dir_entry_t *find_file(const char *name, const char *extn);
+void *load_file(const int where, dir_entry_t *dir);
 
 /**
  * Simple inline functions.
@@ -177,6 +196,21 @@ inline void keybeep() { // Really short beep for the menuing systems.
     }
 }
 
+inline void diskbeep() { // Here to tell you you're stupid for putting 100 read_disks in a row.
+    __asm {
+        in al, 0x61
+        and al, 1111b
+        or al, 10b
+        out 0x61, al
+    }
+    sleep(75);
+    __asm {
+        in al, 0x61
+        and al, 1101b
+        out 0x61, al
+    }
+}
+
 inline void beep() {
     __asm {
         in al, 0x61
@@ -219,6 +253,7 @@ inline char reset_disk(char disk) {
         mov retcode, ah
         end:
     }
+    diskbeep();
     return retcode;
 }
 
@@ -241,6 +276,7 @@ inline char read_disk(void *data, short sector, char count, char disk, char head
         mov retcode, ah
         end:
     }
+    diskbeep();
     return retcode;
 }
 
@@ -263,6 +299,7 @@ inline char write_disk(void *data, short sector, char count, char disk, char hea
         mov retcode, ah
         end:
     }
+    diskbeep();
     return retcode;
 }
 

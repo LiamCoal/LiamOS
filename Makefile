@@ -7,11 +7,11 @@ mkdirs:
 	mkdir -p out/boot/syslinux
 
 clean:
-	rm -rf LIAMOS1.* out *.o *.elf *.bin
+	rm -rf LIAMOS1.* out *.o *.elf *.bin userprog
 
 rebuild: clean all
 
-LIAMOS1.img: mkdirs boot.cfg kernel.bin
+LIAMOS1.img: mkdirs boot.cfg kernel.bin userprog
 	mkdosfs -h 0 -R 1 -F 16 -n LIAMOS -C LIAMOS1.img 10000
 	syslinux LIAMOS1.img
 	
@@ -50,3 +50,7 @@ kernel.bin: $(foreach dir,src,$(wildcard $(dir)/*.c)) $(foreach dir,src,$(wildca
 exec: run32
 
 upgrade-objects: mkdirs kernel.bin
+
+userprog: userprog.rb
+	git clone https://github.com/liamos-operating-system/userprog
+	sudo ruby userprog.rb

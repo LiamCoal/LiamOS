@@ -197,14 +197,108 @@ void *memcpy(void *dest, const void *src, unsigned int size) {
     return dest;
 }
 
+short       bytes_per_sector;
+char        sectors_per_cluster;
+short       reserved_sectors;
+char        fat_count;
+short       max_root_entries;
+short       sectors_per_fat;
+short       hidden_sectors;
+
 void do_boot_proc() {
     puts("Initialize interrupts... ", lblue);
     init_ints();
     puts("DONE\n", lgreen);
+
     puts("Clear Kernel Memory... ", lblue);
     memset((void*)0x9000, 0, 0x4FF);
     puts("DONE\n", lgreen);
-    return;
+
+    puts("Getting data from BPB... ", lblue);
+    set_bpb_vars();
+    puts("DONE\n", lgreen);
+    
+    puts("Looking for file /LIAMOS.BIN... ", lblue);
+    dir_entry_t *file = find_file("LIAMOS  ", "BIN");
+    if(file) {
+        puts("FOUND\n", lgreen);
+        beep();
+        cls();
+        load_file(0x19000, file);
+        __asm {
+            mov ax, 0x0001
+            mov ds, ax
+            call ds:0x9000
+        }
+    } else {
+        puts("NOT FOUND\nPlease put a 16 bit binary file named LIAMOS.BIN in the root directory of the disk.", lred);
+    }
+}
+
+void set_bpb_vars() {
+    char *bpb = (char*)0x500;
+    read_disk(bpb, 0, 2, 0x80, 1);
+    sectors_per_cluster = bpb[0x0D];
+    fat_count = bpb[0x10];
+    short *bpb16 = (short*)bpb;
+    bytes_per_sector        = bpb16[0x0B/2];
+    reserved_sectors        = bpb16[0x0E/2];
+    max_root_entries        = bpb16[0x11/2];
+    sectors_per_fat         = bpb16[0x16/2];
+    hidden_sectors          = bpb16[0x1C/2];
+    if(
+            bpb[0x100] == 0x52 &&
+            bpb[0x101] == 0x52 &&
+            bpb[0x102] == 0x61 &&
+            bpb[0x103] == 0x41) {
+        // FAT32 not supported
+        puts("FAILED\nFAT32 is not supported. Use FAT16.\n", lred);
+        confuzzled();
+    }
+}
+
+dir_entry_t entry;
+
+dir_entry_t *find_file(const char *name, const char *extn) {
+    int files_read, start_fn;
+    void *disk_chk = (void*)0x20000;
+    short sectors_gone_thru = 0;
+    read_disk(disk_chk, hidden_sectors+reserved_sectors+sectors_gone_thru, 1, 0x80, 1);
+    while(((char*)disk_chk)[start_fn] != 0) {
+        if(start_fn >= 0x200) {
+            sectors_gone_thru++;
+            read_disk(disk_chk, hidden_sectors+reserved_sectors+sectors_gone_thru, 1, 0x80, 1);
+            start_fn = 0;
+        }
+        dir_entry_t e = *((dir_entry_t*)((int)disk_chk)+start_fn);
+        if(e.name[0] == 0x00) {
+            // End of directories and files.
+            return nullptr;
+        }
+        for(int i = 0; i < 8; i++) if(e.name[i] != name[i]) goto after;
+        for(int i = 0; i < 3; i++) if(e.extn[i] != extn[i]) goto after;
+        entry = e;
+        return &entry;
+after:
+        start_fn += 32;
+    }
+}
+
+void *load_file(const int where, dir_entry_t *dir) {
+    if(dir->byte_size == 0) {
+        puts("Failed to read file. Zero size.\n", white);
+    } 
+    diskbeep();
+    short sector = dir->cluster * sectors_per_cluster;
+    int bytes = dir->byte_size;
+    short sectors = bytes / bytes_per_sector;
+    short place = 0, togo = sectors;
+    while(togo > 63) {
+        read_disk((void*)where+(togo*bytes_per_sector), sector+place, 63, 0x80, 1);
+        togo -= 63;
+        place += 63;
+    }
+    read_disk((void*)where+(togo*bytes_per_sector), sector+place, togo, 0x80, 1);
 }
 
 const char keyset[0xFF] = {
