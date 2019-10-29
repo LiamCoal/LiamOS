@@ -14,7 +14,7 @@
 // Change GITVER to NO if release.
 #define GITVER YES
 // Please increase GITPATCH when you change something. (in the code)
-#define GITPATCH "5"
+#define GITPATCH "6"
 
 extern unsigned char *memory;
 extern unsigned char  curvmode;
@@ -81,7 +81,7 @@ void do_boot_proc();
 char *getstr(char);
 void set_bpb_vars();
 dir_entry_t *find_file(const char *name, const char *extn);
-void *load_file(const int where, dir_entry_t *dir);
+void *read_file(const int where, dir_entry_t *dir);
 
 /**
  * Simple inline functions.
@@ -301,6 +301,38 @@ inline char write_disk(void *data, short sector, char count, char disk, char hea
     }
     diskbeep();
     return retcode;
+}
+
+inline char cont_read_disk(void *data, short sector, short count, char disk, char head) {
+    short i = 0, togo = count;
+    int where = (int)data;
+    while (i < count)
+    {
+        if(i > 63) {
+            read_disk((void*)where, sector+i, 63, disk, head);
+            i += 63;
+            togo -= 63;
+        } else {
+            read_disk((void*)where, sector+i, togo, disk, head);
+            return (void*)where;
+        }
+    }
+}
+
+inline char cont_write_disk(void *data, short sector, short count, char disk, char head) {
+    short i = 0, togo = count;
+    int where = (int)data;
+    while (i < count)
+    {
+        if(i > 63) {
+            write_disk((void*)where, sector+i, 63, disk, head);
+            i += 63;
+            togo -= 63;
+        } else {
+            write_disk((void*)where, sector+i, togo, disk, head);
+            return (void*)where;
+        }
+    }
 }
 
 #endif

@@ -223,8 +223,7 @@ void do_boot_proc() {
     if(file) {
         puts("FOUND\n", lgreen);
         beep();
-        cls();
-        load_file(0x19000, file);
+        read_file(0x101000, file);
         __asm {
             mov ax, 0x0001
             mov ds, ax
@@ -260,18 +259,29 @@ void set_bpb_vars() {
 dir_entry_t entry;
 
 dir_entry_t *find_file(const char *name, const char *extn) {
+    puts("\n", black);
+    puts("* Initializing variables.\n", lblue);
     int files_read, start_fn;
-    void *disk_chk = (void*)0x20000;
+    void *disk_chk = (void*)0xB000;
     short sectors_gone_thru = 0;
-    read_disk(disk_chk, hidden_sectors+reserved_sectors+sectors_gone_thru, 1, 0x80, 1);
+    puts("* Doing first disk read.\n", lblue);
+    read_disk(disk_chk, hidden_sectors+reserved_sectors+(sectors_per_fat*2)+sectors_gone_thru, 1, 0x80, 1);
+    puts("* Enterring loop.\n", lblue);
+    puts("\\", lblue);
+    puts("-\\", lblue);
     while(((char*)disk_chk)[start_fn] != 0) {
+        puts("--| Loop iteration.\n", lblue);
         if(start_fn >= 0x200) {
+            puts("--| start_fn >= 0x200 (512)\n", lblue);
             sectors_gone_thru++;
-            read_disk(disk_chk, hidden_sectors+reserved_sectors+sectors_gone_thru, 1, 0x80, 1);
+            read_disk(disk_chk, hidden_sectors+reserved_sectors+(sectors_per_fat*2)+sectors_gone_thru, 1, 0x80, 1);
             start_fn = 0;
         }
         dir_entry_t e = *((dir_entry_t*)((int)disk_chk)+start_fn);
         if(e.name[0] == 0x00) {
+            puts("-/", lblue);
+            puts("/", lblue);
+            puts("* End of directories and files.", lred);
             // End of directories and files.
             return nullptr;
         }
@@ -284,21 +294,13 @@ after:
     }
 }
 
-void *load_file(const int where, dir_entry_t *dir) {
-    if(dir->byte_size == 0) {
-        puts("Failed to read file. Zero size.\n", white);
-    } 
-    diskbeep();
-    short sector = dir->cluster * sectors_per_cluster;
-    int bytes = dir->byte_size;
-    short sectors = bytes / bytes_per_sector;
-    short place = 0, togo = sectors;
-    while(togo > 63) {
-        read_disk((void*)where+(togo*bytes_per_sector), sector+place, 63, 0x80, 1);
-        togo -= 63;
-        place += 63;
-    }
-    read_disk((void*)where+(togo*bytes_per_sector), sector+place, togo, 0x80, 1);
+void *read_file(int out, dir_entry_t *dir) {
+    short *disk_chk = (void*)0xB000;
+    void *output = (void*)out;
+    read_disk((void*)disk_chk, hidden_sectors+reserved_sectors+(sectors_per_fat*2), sectors_per_fat, 0x80, 1);
+    const short begin = (hidden_sectors+reserved_sectors+(sectors_per_fat*2))+32+((dir->cluster-1)*sectors_per_cluster);
+    const short toread = dir->byte_size*bytes_per_sector;
+    cont_read_disk((void*)out, begin, toread, 0x80, 1);
 }
 
 const char keyset[0xFF] = {

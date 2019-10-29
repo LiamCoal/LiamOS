@@ -1,6 +1,12 @@
-// Kernel stripped of its start capabilities.
-
 #include "kernel.h"
+
+void kmain();
+void int80h();
+
+void _start() {
+    kmain();
+    asm("hlt");
+}
 
 unsigned char *memory = (unsigned char*)0x00500;
 unsigned char  curvmode = 0x13;
@@ -25,12 +31,6 @@ int            vyptr = 1;
 void          *nullptr = 0;
 char           lastkey = 0;
 bool           keywaiting = NO;
-
-typedef enum
-{
-    NULLTYPE,
-    NORMAL
-} boottype_t;
 
 char getch() {
     char r;
@@ -112,6 +112,72 @@ void *memcpy(void *dest, const void *src, unsigned int size) {
         ((char*)dest)[i] = ((char*)src)[i];
     }
     return dest;
+}
+
+short       bytes_per_sector;
+char        sectors_per_cluster;
+short       reserved_sectors;
+char        fat_count;
+short       max_root_entries;
+short       sectors_per_fat;
+short       hidden_sectors;
+
+void set_bpb_vars() {
+    char *bpb = (char*)0x500;
+    read_disk(bpb, 0, 2, 0x80, 1);
+    sectors_per_cluster = bpb[0x0D];
+    fat_count = bpb[0x10];
+    short *bpb16 = (short*)bpb;
+    bytes_per_sector        = bpb16[0x0B/2];
+    reserved_sectors        = bpb16[0x0E/2];
+    max_root_entries        = bpb16[0x11/2];
+    sectors_per_fat         = bpb16[0x16/2];
+    hidden_sectors          = bpb16[0x1C/2];
+    if(
+            bpb[0x100] == 0x52 &&
+            bpb[0x101] == 0x52 &&
+            bpb[0x102] == 0x61 &&
+            bpb[0x103] == 0x41) {
+        // FAT32 not supported
+        puts("FAILED\nFAT32 is not supported. Use FAT16.\n", lred);
+        confuzzled();
+    }
+}
+
+dir_entry_t entry;
+
+dir_entry_t *find_file(const char *name, const char *extn) {
+    int files_read, start_fn;
+    void *disk_chk = (void*)0xB000;
+    short sectors_gone_thru = 0;
+    read_disk(disk_chk, hidden_sectors+reserved_sectors+(sectors_per_fat*2)+sectors_gone_thru, 1, 0x80, 1);
+    while(((char*)disk_chk)[start_fn] != 0) {
+        if(start_fn >= 0x200) {
+            sectors_gone_thru++;
+            read_disk(disk_chk, hidden_sectors+reserved_sectors+(sectors_per_fat*2)+sectors_gone_thru, 1, 0x80, 1);
+            start_fn = 0;
+        }
+        dir_entry_t e = *((dir_entry_t*)((int)disk_chk)+start_fn);
+        if(e.name[0] == 0x00) {
+            // End of directories and files.
+            return nullptr;
+        }
+        for(int i = 0; i < 8; i++) if(e.name[i] != name[i]) goto after;
+        for(int i = 0; i < 3; i++) if(e.extn[i] != extn[i]) goto after;
+        entry = e;
+        return &entry;
+after:
+        start_fn += 32;
+    }
+}
+
+void *read_file(int out, dir_entry_t *dir) {
+    short *disk_chk = (void*)0xB000;
+    void *output = (void*)out;
+    read_disk((void*)disk_chk, hidden_sectors+reserved_sectors+(sectors_per_fat*2), sectors_per_fat, 0x80, 1);
+    const short begin = (hidden_sectors+reserved_sectors+(sectors_per_fat*2))+32+((dir->cluster-1)*sectors_per_cluster);
+    const short toread = dir->byte_size*bytes_per_sector;
+    cont_read_disk((void*)out, begin, toread, 0x80, 1);
 }
 
 const char keyset[0xFF] = {
