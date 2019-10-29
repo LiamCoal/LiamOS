@@ -1,8 +1,10 @@
 # LiamOS
+*Upgraded sausage, Stopped working.*
+ - -- - -- - -- - -- - -- - -- - -- 
 
-**Readme is very likely outdated:**
-Last update: 10/22/2019  
-LiamOS Version: 0.0.2a (ALPHA)
+**Readme is very likely outdated:**  
+Last update: *10/28/2019*  
+LiamOS Version: *0.0.3a* (**ALPHA**)
 
 ## Dependencies
 
@@ -21,7 +23,7 @@ LiamOS is a really badly written operating system that is an experiment.
 
 Makefile: Allows you to use make to build the project  
 README.md: What you're reading right now  
-run.sh: Runs LiamOS in an emulator. Prefer not to run it directly, use make run32.
+run.sh: Runs LiamOS in an emulator. Prefer not to run it directly, use `make run32` or `make exec`.  
 boot.cfg: Syslinux config file. [see Syslinux](syslinux.org).  
 src/kernel.c: Main kernel file  
 .gitignore: Git, ignore these files  
@@ -29,7 +31,7 @@ src/kernel.c: Main kernel file
 ### Only after compiling
 
 out/: Directory where all of the files end up before they are copyed to img  
-img/: Mount dir of LIAMOS1.img.
+img/: Mount dir of LIAMOS1.img.  
 
 ## How to compile
 
