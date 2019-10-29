@@ -1,13 +1,5 @@
 #include "kernel.h"
 
-void kmain();
-void int80h();
-
-void _start() {
-    kmain();
-    asm("hlt");
-}
-
 unsigned char *memory = (unsigned char*)0x00500;
 unsigned char  curvmode = 0x13;
 const char
