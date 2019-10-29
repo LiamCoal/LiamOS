@@ -10,5 +10,6 @@ out
 *.vdi
 .DS_Store
 userprog
+.plans.txt
 
 # lots of things
