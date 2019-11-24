@@ -1,4 +1,4 @@
-.PHONY : all clean rebuild mkdirs src.tar.xz exec upgrade-objects
+.PHONY : all clean rebuild mkdirs src.tar.xz exec
 
 all: LIAMOS1.img
 pkg: LIAMOS1.xz src.tar.xz
@@ -48,8 +48,6 @@ kernel.bin: $(foreach dir,src,$(wildcard $(dir)/*.c)) $(foreach dir,src,$(wildca
 	clang -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x7C00,-Trodata,0xA000,-Tdata,0x9000,-Tbss,0x9000 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/boot/kernel.bin $(foreach dir,src,$(wildcard $(dir)/*.c))
 
 exec: run32
-
-upgrade-objects: mkdirs kernel.bin
 
 userprog: userprog.rb
 	git clone https://github.com/liamos-operating-system/userprog
