@@ -73,6 +73,8 @@ void kmain() {
             cls();
             putsat("You can now power off your PC.", yellow, 25, 12);
             while(true); // End of execution
+        } else if(c == 'C') {
+            crash(ERR_TRIGGER);
         } else {
             putc(totxt(c, lred));
             puts(" is not a valid option\n", red);
@@ -87,7 +89,7 @@ void kmain() {
         /**
          * Should never be reached, but if it is, handle it.
          */
-        confuzzled(); 
+        crash(ERR_INVALID_OPTION);
         break;
     }
 }
@@ -252,7 +254,7 @@ void set_bpb_vars() {
             bpb[0x103] == 0x41) {
         // FAT32 not supported
         puts("FAILED\nFAT32 is not supported. Use FAT16.\n", lred);
-        confuzzled();
+        crash(ERR_DISK);
     }
 }
 
@@ -301,6 +303,41 @@ void *read_file(int out, dir_entry_t *dir) {
     const short begin = (hidden_sectors+reserved_sectors+(sectors_per_fat*2))+32+((dir->cluster-1)*sectors_per_cluster);
     const short toread = dir->byte_size*bytes_per_sector;
     cont_read_disk((void*)out, begin, toread, 0x80, 1);
+void crash(int reason) {
+    vmode(0x12);
+    error("crash() called");
+    puts("\r\n", black);
+    if(reason == ERR_TRIGGER) {
+        error("ERR_TRIGGER        x0000 0000");
+        puts("This is a triggered error, nothing's wrong.", gray);
+    } else if(reason == ERR_INVALID_OPTION) {
+        error("ERR_INVALID_OPTION x0000 0001");
+        puts("You chose an invalid option in a menu.", gray);
+    } else if(reason == ERR_DISK) {
+        error("ERR_DISK           x0000 0002");
+        puts("An error with the disk occurred.", gray);
+    } else {
+        error("ERR_UNKNOWN        x???? ????");
+        puts("There's a problem with the OS.", gray);
+    }
+    puts("\r\n\n", black);
+    printver();
+    beep();
+    sleep(20000);
+    // TODO put this asm in a function (power_off?):
+    __asm {
+        mov ax, 0x1000
+        mov ax, ss
+        mov sp, 0xf000
+        mov ax, 0x5307
+        mov bx, 0x0001
+        mov cx, 0x0003
+        int 0x15
+    }
+    puts("\r\nYour PC does not support auto power off.\r\nYou may now turn your PC off.", yellow);
+    while(true);
+}
+
 }
 
 const char keyset[0xFF] = {

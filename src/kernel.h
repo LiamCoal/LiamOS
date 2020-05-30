@@ -82,6 +82,7 @@ char *getstr(char);
 void set_bpb_vars();
 dir_entry_t *find_file(const char *name, const char *extn);
 void *read_file(const int where, dir_entry_t *dir);
+void crash(int reason);
 
 /**
  * Simple inline functions.
