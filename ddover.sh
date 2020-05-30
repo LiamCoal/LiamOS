@@ -9,7 +9,7 @@ if [[ ! -e $DEVICE ]]; then
 fi
 
 echo -e "\e[32;1mMaking LIAMOS1.img\e[0m" &&
-make clean all &&
+sudo make clean all -j1 &&
 echo -e "\e[32;1mWriting to $DEVICE\e[0m" &&
 sudo dd if=LIAMOS1.img of=$DEVICE bs=512 status=progress &&
 echo -e "\e[34;1mDone.\e[0m"
