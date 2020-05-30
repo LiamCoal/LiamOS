@@ -1,4 +1,4 @@
-.PHONY : all clean rebuild mkdirs src.tar.xz exec
+.PHONY : all clean rebuild mkdirs exec
 
 all: LIAMOS1.img
 pkg: LIAMOS1.xz src.tar.xz
@@ -45,7 +45,7 @@ LIAMOS1.vdi: LIAMOS1.img
 	clang -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x1000,-Trodata,0x0000,-Tdata,0x0A00,-Tbss,0x0A00 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/$@ $<
 
 kernel.bin: $(foreach dir,src,$(wildcard $(dir)/*.c)) $(foreach dir,src,$(wildcard $(dir)/*.h))
-	clang -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x7C00,-Trodata,0xA000,-Tdata,0x9000,-Tbss,0x9000 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/boot/kernel.bin $(foreach dir,src,$(wildcard $(dir)/*.c))
+	clang -v -fasm-blocks -masm=intel -Wl,--oformat=binary,-Ttext,0x7C00,-Tdata,0xA000,-Tbss,0xB000,-Trodata,0xC000 -nostdlib -nostartfiles -nodefaultlibs -m16 -Os -o out/boot/kernel.bin $(foreach dir,src,$(wildcard $(dir)/*.c))
 
 exec: run32
 
