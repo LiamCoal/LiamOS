@@ -1,0 +1,17 @@
+ccefi_args = -c -fno-stack-protector -fpic -fshort-wchar -mno-red-zone -I /usr/local/include/efi -I /usr/local/include/efi/x86_64 -DEFI_FUNCTION_WRAPPER
+ldefi_args = /usr/local/lib/crt0-efi-x86_64.o -nostdlib -znocombreloc -T /usr/local/lib/elf_x86_64_efi.lds -shared -Bsymbolic -L /usr/local/lib -l:libgnuefi.a -l:libefi.a
+toefi_args = -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel -j .rela -j .reloc --target=efi-app-x86_64
+
+rule ccefi
+    command = gcc $in $ccefi_args -o $out
+
+rule ldefi
+    command = ld $in $ldefi_args -o $out
+
+rule toefi
+    command = objcopy $toefi_args $in $out
+
+# Object Building
+build main.o: ccefi main.c
+build liamos.so: ldefi main.o
+build liamos.efi: toefi liamos.so
